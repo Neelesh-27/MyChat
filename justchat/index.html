@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+            body{
+                margin-top: 30px;
+                background-image: url('http://getwallpapers.com/wallpaper/full/a/5/d/544750.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                height: 100%;
+                font-family: 'Numans', sans-serif;
+            }
+            h3{
+                color: rgb(0, 255, 200);
+            }
+            label{
+                color: rgb(0, 255, 200);
+            }     
+            li{
+                color: rgb(21, 56, 255);   
+                font-family: 'Times New Roman', Times, serif;
+            }
+            #messageArea{
+                display: none;
+            }
+            div.chat{
+                color: rgb(0, 7, 112);   
+            }
+            aside{
+                   float: left;
+                   width: 40%;
+            }
+            section{
+                    float: right;
+                    width: 60%;
+            }
+            strong{
+                color: rgb(250, 212, 0);   
+            }
+            .card{
+                left: 38%;
+                right: 38%;
+                margin-top: 80px;
+            }
+            div.ex1{
+                    background-color: rgb(255, 255, 255);
+                    width: 600px;
+                    height: 350px;
+                    overflow: scroll;
+                    margin: 0 auto;
+                    border : 5px solid rgb(255, 0, 242);
+                    border-radius : 7px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div id="userFormArea" class="row">         
+            <div class="card body bg-info mb-3 border-warning mb-3">
+            <div class="col-md-10">
+                    <form id="userForm">
+                            <div class="form-group">
+                                <div class="bg-info mb-3  border-warning mb-3 card-header"><strong>Sign in</strong></div>
+                                <label>Email</label>
+                                <input class="form-control" id="Email" placeholder="Email">  
+                                <br />
+                                <label>Username</label>
+                                <input class="form-control" id="username" placeholder="Username">                                  
+                                <br />
+                                <input type="submit" class="btn btn-primary" value="Sign in">
+                            </div>
+                    </form>
+            </div>  
+            </div>  
+            </div>
+            
+            <div id="messageArea" class="row">  
+                <aside>       
+                    <div class="col-md-6">
+                    <div class="well">
+                        <h3>Online Users</h3>
+                        <ul class="list-group" id="users"></ul>
+                    </div>
+                    </div>
+                </aside>  
+                <br />
+                <div class="ex1"> 
+                <div class="chat" id="chat"></div>
+                </div>
+                <br />
+                <div class="col-md-12">
+                    <section>
+                        <form id="messageForm">
+                            <div class="form-group">
+                                <label>Enter Message</label>
+                                <input class="form-control" id="message">
+                                <br />
+                                <input type="submit" class="btn btn-success" value="Send Message">
+                            </div>
+                        </form>  
+                    </section>            
+                </div>
+            </div>
+        </div>  
+    <script>
+      $(function(){
+          var socket = io.connect();
+          var $messageForm = $('#messageForm');
+          var $message = $('#message');
+          var $chat = $('#chat');
+          var $messageArea =$('#messageArea');
+          var $userFormArea =$('#userFormArea');
+          var $userForm =$('#userForm');
+          var $users =$('#users');
+          var $username =$('#username');
+
+          $messageForm.submit(function(e){
+              e.preventDefault();
+              console.log('Submitted');
+              socket.emit('send message', $message.val());
+              $message.val('');
+          });
+          
+          socket.on('new message', function(data){         
+             $chat.append('<div class="well"><strong>'+data.user+'</strong> :'+data.msg+'</div>');
+          });
+
+          $userForm.submit(function(e){
+              e.preventDefault();
+              console.log('Submitted');
+              socket.emit('new user', $username.val(), function(data){
+              
+                if(data){
+                      $userFormArea.hide();
+                      $messageArea.show();
+                }
+
+              });
+              $username.val('');
+          });
+
+          socket.on('get users', function(data){
+            
+            var html = '';
+                for (i = 0; i< data.length;i++){
+                       html += '<li class="list-group-item">'+data[i]+'</li>';
+                    }
+                    $users.html(html);
+          });
+
+      });
+    </script>
+    </body>
+</html>
